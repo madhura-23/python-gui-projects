@@ -1,0 +1,24 @@
+---------------------------------------------------
+Here are the ownership and the certification details
+of the Tic-Tak-Toe 1.0
+---------------------------------------------------
+
+app_name - 						Tic-Tak-Toe
+app_alias - 					tictaktoe
+app_author_name - 				My Company
+app_author_organizational - 	My Company
+app_author_organization - 		My Company
+app_author_locality - 			My Company
+app_author_state - 				Delhi
+app_author_country - 			India
+app_password - 					5RVXz9XXhEqi
+app_versionName - 				versionName "1.0"
+app_versionCode - 				100
+
+---------------------------------------------------
+The certification was created by WebIntoApp.com at
+the Saturday 5th of April 2025 06:18:12 AM
+
+https://www.webintoapp.com
+---------------------------------------------------
+
