@@ -1,1 +1,252 @@
+import tkinter as tk
+from datetime import date, datetime, timedelta
+import json
+import os
+import matplotlib.pyplot as plt
+import numpy as np
+from collections import Counter
+
+# -------------------- COLORS --------------------
+BG_COLOR = "#1e1e1e"
+FRAME_COLOR = "#2c2c2c"
+TEXT_COLOR = "#ffffff"
+BUTTON_COLOR = "#3a3a3a"
+ACCENT_COLOR = "#4CAF50"
+
+FILE = "habits.json"
+
+# -------------------- DATA FUNCTIONS --------------------
+def load_habits():
+    if os.path.exists(FILE):
+        with open(FILE, "r") as f:
+            try:
+                data = json.load(f)
+
+                # Fix old structure automatically
+                for habit in data.values():
+                    if "completed_dates" not in habit:
+                        habit["completed_dates"] = []
+                    if "streak" not in habit:
+                        habit["streak"] = 0
+                    if "last_completed" not in habit:
+                        habit["last_completed"] = ""
+
+                # Save corrected file
+                with open(FILE, "w") as fw:
+                    json.dump(data, fw)
+
+                return data
+            except:
+                return {}
+    return {}
+
+def save_habits():
+    with open(FILE, "w") as f:
+        json.dump(habits, f)
+
+# -------------------- GUI SETUP --------------------
+root = tk.Tk()
+root.title("Habit Tracker")
+root.geometry("400x550")
+root.configure(bg=BG_COLOR)
+
+habits = load_habits()
+
+# -------------------- HABIT FUNCTIONS --------------------
+def add_habit():
+    habit_name = habit_entry.get().strip()
+
+    if habit_name and habit_name not in habits:
+        habits[habit_name] = {
+            "streak": 0,
+            "last_completed": "",
+            "completed_dates": []
+        }
+        save_habits()
+        update_display()
+        habit_entry.delete(0, tk.END)
+
+def mark_done(habit):
+    today = str(date.today())
+
+    if today in habits[habit]["completed_dates"]:
+        return  # already marked today
+
+    last_completed = habits[habit]["last_completed"]
+
+    # Proper streak logic
+    if last_completed:
+        last_date = datetime.strptime(last_completed, "%Y-%m-%d").date()
+        if last_date == date.today() - timedelta(days=1):
+            habits[habit]["streak"] += 1
+        else:
+            habits[habit]["streak"] = 1
+    else:
+        habits[habit]["streak"] = 1
+
+    habits[habit]["last_completed"] = today
+    habits[habit]["completed_dates"].append(today)
+
+    save_habits()
+    update_display()
+
+def delete_habit(habit):
+    del habits[habit]
+    save_habits()
+    update_display()
+
+# -------------------- DISPLAY --------------------
+def update_display():
+    for widget in habit_frame.winfo_children():
+        widget.destroy()
+
+    for habit, data in habits.items():
+        frame = tk.Frame(habit_frame, bg=BG_COLOR)
+        frame.pack(pady=5)
+
+        text = f"{habit}  |  🔥 {data['streak']}"
+
+        btn = tk.Button(frame,
+                        text=text,
+                        command=lambda h=habit: mark_done(h),
+                        width=22,
+                        bg=BUTTON_COLOR,
+                        fg=TEXT_COLOR,
+                        activebackground=FRAME_COLOR)
+        btn.pack(side="left")
+
+        del_btn = tk.Button(frame,
+                            text="X",
+                            command=lambda h=habit: delete_habit(h),
+                            bg="#8B0000",
+                            fg="white",
+                            activebackground="#a00000")
+        del_btn.pack(side="left", padx=5)
+
+# -------------------- STATISTICS --------------------
+def show_stats():
+    if not habits:
+        return
+
+    total_habits = len(habits)
+    streaks = [data["streak"] for data in habits.values()]
+    total_streak = sum(streaks)
+    longest_streak = max(streaks)
+    avg_streak = total_streak / total_habits
+
+    stats_window = tk.Toplevel(root)
+    stats_window.title("Statistics")
+    stats_window.geometry("300x250")
+    stats_window.configure(bg=BG_COLOR)
+
+    tk.Label(stats_window, text="📊 Habit Statistics",
+             font=("Arial", 14),
+             bg=BG_COLOR,
+             fg=TEXT_COLOR).pack(pady=10)
+
+    tk.Label(stats_window,
+             text=f"Total Habits: {total_habits}",
+             bg=BG_COLOR,
+             fg=TEXT_COLOR).pack(pady=5)
+
+    tk.Label(stats_window,
+             text=f"Total Streak Count: {total_streak}",
+             bg=BG_COLOR,
+             fg=TEXT_COLOR).pack(pady=5)
+
+    tk.Label(stats_window,
+             text=f"Longest Streak: {longest_streak}",
+             bg=BG_COLOR,
+             fg=TEXT_COLOR).pack(pady=5)
+
+    tk.Label(stats_window,
+             text=f"Average Streak: {avg_streak:.2f}",
+             bg=BG_COLOR,
+             fg=TEXT_COLOR).pack(pady=5)
+
+# -------------------- HEATMAP --------------------
+def show_heatmap():
+    all_dates = []
+
+    for habit in habits.values():
+        all_dates.extend(habit["completed_dates"])
+
+    if not all_dates:
+        return
+
+    date_counts = Counter(all_dates)
+
+    date_objects = [datetime.strptime(d, "%Y-%m-%d") for d in date_counts.keys()]
+    start_date = min(date_objects)
+    end_date = max(date_objects)
+
+    start_date -= timedelta(days=start_date.weekday())
+    end_date += timedelta(days=(6 - end_date.weekday()))
+
+    total_days = (end_date - start_date).days + 1
+    weeks = total_days // 7
+
+    heatmap = np.zeros((7, weeks))
+
+    for single_date in (start_date + timedelta(n) for n in range(total_days)):
+        week = (single_date - start_date).days // 7
+        day = single_date.weekday()
+        date_str = single_date.strftime("%Y-%m-%d")
+
+        if date_str in date_counts:
+            heatmap[day][week] = date_counts[date_str]
+
+    plt.figure(figsize=(weeks, 4))
+    plt.imshow(heatmap, aspect='auto')
+    plt.colorbar(label="Completions")
+    plt.yticks(range(7), ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+    plt.title("GitHub-Style Habit Heatmap")
+    plt.xlabel("Weeks")
+    plt.tight_layout()
+    plt.show()
+
+# -------------------- UI ELEMENTS --------------------
+title = tk.Label(root,
+                 text="My Habit Tracker",
+                 font=("Arial", 16),
+                 bg=BG_COLOR,
+                 fg=TEXT_COLOR)
+title.pack(pady=10)
+
+habit_entry = tk.Entry(root,
+                       width=25,
+                       bg=FRAME_COLOR,
+                       fg=TEXT_COLOR,
+                       insertbackground=TEXT_COLOR)
+habit_entry.pack(pady=5)
+
+add_button = tk.Button(root,
+                       text="Add Habit",
+                       command=add_habit,
+                       bg=ACCENT_COLOR,
+                       fg="white",
+                       activebackground="#45a049")
+add_button.pack(pady=5)
+
+stats_button = tk.Button(root,
+                         text="View Statistics",
+                         command=show_stats,
+                         bg="#2196F3",
+                         fg="white",
+                         activebackground="#1e88e5")
+stats_button.pack(pady=5)
+
+heatmap_button = tk.Button(root,
+                           text="Calendar Heatmap",
+                           command=show_heatmap,
+                           bg="#9C27B0",
+                           fg="white")
+heatmap_button.pack(pady=5)
+
+habit_frame = tk.Frame(root, bg=BG_COLOR)
+habit_frame.pack(pady=20)
+
+update_display()
+
+root.mainloop()
 
