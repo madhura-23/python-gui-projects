@@ -25,12 +25,12 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  PORTFOLIO TERMINAL v1.0          DATE: 2024          USER: ANALYST         │
+│  PORTFOLIO TERMINAL v1.0          DATE: 2020-2026      USER: ANALYST        │
 │─────────────────────────────────────────────────────────────────────────────│
 │  AAPL  ████████████████████░░░░  +127.4%   MSFT  ███████████████░░░░░  +98.2%│
-│  GOOGL ████████████░░░░░░░░░░░░  +74.1%    AMZN  ██████████░░░░░░░░░░  +61.7%│
+│  GOOGL ████████████░░░░░░░░░░░░   +74.1%   AMZN  ██████████░░░░░░░░░░  +61.7%│
 │  TSLA  ████████████████████████  +189.3%   NVDA  ████████████████████  +312% │
-│  JPM   ████████░░░░░░░░░░░░░░░░  +45.2%    GS    ███████░░░░░░░░░░░░░  +38.9%│
+│  JPM   ████████░░░░░░░░░░░░░░░░   +45.2%   GS    ███████░░░░░░░░░░░░░  +38.9%│
 │─────────────────────────────────────────────────────────────────────────────│
 │  PORTFOLIO ▲ +28.4%     BENCHMARK SPY ▲ +19.1%     ALPHA ▲ +9.3%           │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -40,8 +40,8 @@
 
 ## `> SYSTEM OVERVIEW`
 
-> A **production-grade quantitative finance engine** built entirely in Python.  
-> This project replicates the core workflow of a Wall Street risk analyst desk —  
+> A **production-grade quantitative finance engine** built entirely in Python.
+> This project replicates the core workflow of a Wall Street risk analyst desk —
 > from raw market data ingestion to ML-powered alpha generation.
 
 ```
@@ -57,6 +57,76 @@ MODULES LOADED:
 
 ---
 
+## `> LIVE DASHBOARD PREVIEW`
+
+### Main Dashboard — 9-Panel Interactive View
+![Main Dashboard](dashboard_main.png)
+
+---
+
+### `[PANEL 01]` Value at Risk Analysis
+> Return distribution with Normal fit overlay, VaR & CVaR markers, and rolling 30-day VaR time series
+
+![VaR Analysis](chart_var.png)
+
+---
+
+### `[PANEL 02]` Portfolio Drawdown Over Time
+> Peak-to-trough decline tracker — Max Drawdown: **-40.7%** during the 2022–2023 bear market
+
+![Drawdown](chart_drawdown.png)
+
+---
+
+### `[PANEL 03]` Pairwise Correlation Matrix
+> Daily return correlations across all 8 holdings — JPM & GS show highest co-movement at 0.82
+
+![Correlation Matrix](chart_correlation.png)
+
+---
+
+### `[PANEL 04]` 60-Day Rolling Correlation vs SPY
+> Regime detection — correlations spike sharply during market stress events (2022 crash, 2025 volatility)
+
+![Rolling Correlation](chart_rolling_corr.png)
+
+---
+
+### `[PANEL 05]` ML Price Prediction — AAPL
+> Ensemble model (RF + GB) predicting 5-day forward returns vs actuals, with prediction error distribution
+
+![ML Prediction](chart_ml_prediction.png)
+
+---
+
+### `[PANEL 06]` Feature Importance Comparison
+> `vol_ratio` and `realised_vol_21` dominate both models — volatility regime is the strongest predictive signal
+
+![Feature Importance](chart_feature_importance.png)
+
+---
+
+### `[PANEL 07]` Simulated ML Trading Strategy
+> Long/short signal strategy vs Buy & Hold SPY — ML strategy outperforms during directional trending regimes
+
+![ML Strategy](chart_ml_strategy.png)
+
+---
+
+### `[PANEL 08]` Monte Carlo Simulation — 10,000 Paths × 252 Days
+> Correlated multi-asset paths via Cholesky decomposition — fan chart with 5th/25th/50th/75th/95th percentile bands
+
+![Monte Carlo](chart_monte_carlo.png)
+
+---
+
+### `[PANEL 09]` Portfolio Value Distribution After 1 Year
+> Final value KDE across all 10,000 simulations — right-skewed with positive expected return
+
+![Distribution](newplot.png)
+
+---
+
 ## `> RISK METRICS DECODED`
 
 ```
@@ -65,12 +135,12 @@ MODULES LOADED:
 ╠══════════════════════╬═══════════════════════════════════════════════════╣
 ║  Historical VaR 95%  ║  Max expected daily loss, 95% of the time         ║
 ║  Parametric VaR      ║  Same but assumes normal distribution              ║
-║  CVaR / Ex. Shortfall║  Average loss when things go REALLY wrong          ║
+║  CVaR / Ex.Shortfall ║  Average loss when things go REALLY wrong          ║
 ║  Sharpe Ratio        ║  Return earned per unit of risk taken              ║
-║  Sortino Ratio       ║  Like Sharpe — but only punishes downside risk     ║
+║  Sortino Ratio       ║  Like Sharpe — but only penalises downside risk    ║
 ║  Beta                ║  How much the portfolio moves with the market      ║
-║  Max Drawdown        ║  Worst peak-to-trough loss in history              ║
-║  Calmar Ratio        ║  Annual return ÷ Max Drawdown                      ║
+║  Max Drawdown        ║  Worst peak-to-trough loss in history (-40.7%)     ║
+║  Calmar Ratio        ║  Annual return divided by Max Drawdown             ║
 ╚══════════════════════╩═══════════════════════════════════════════════════╝
 ```
 
@@ -79,8 +149,6 @@ MODULES LOADED:
 ## `> ML PREDICTION ENGINE`
 
 ```python
-# 25+ engineered features feeding two models:
-
 FEATURES = {
     "Lag Returns"     : [1d, 2d, 3d, 5d, 10d, 21d],
     "Rolling Stats"   : [mean, std, skew, kurt → 5/10/21/63d windows],
@@ -90,9 +158,9 @@ FEATURES = {
 }
 
 MODELS = {
-    "Random Forest"      : n_estimators=400, max_depth=8,
-    "Gradient Boosting"  : n_estimators=300, learning_rate=0.05,
-    "Ensemble"           : average(RF, GB),   # best directional accuracy
+    "Random Forest"     : n_estimators=400, max_depth=8,
+    "Gradient Boosting" : n_estimators=300, learning_rate=0.05,
+    "Ensemble"          : average(RF, GB),
 }
 
 TARGET = "5-day forward log-return"   # no data leakage | TimeSeriesSplit CV
@@ -101,10 +169,8 @@ TARGET = "5-day forward log-return"   # no data leakage | TimeSeriesSplit CV
 ```
 MODEL PERFORMANCE (hold-out test set)
 ───────────────────────────────────────────────────────────
-  Random Forest       MAE ↓   RMSE ↓   R² ↑   IC ↑
-  Gradient Boosting   MAE ↓   RMSE ↓   R² ↑   IC ↑
-  Ensemble (avg)      ← best directional accuracy ~56-58%
-                        (>55% considered alpha in quant finance)
+  Ensemble Directional Accuracy : ~56-58%
+  (> 55% is considered useful alpha in quantitative finance)
 ───────────────────────────────────────────────────────────
 ```
 
@@ -155,12 +221,12 @@ python -m jupyter lab Finance_Risk_Analytics.ipynb
 ## `> TECH STACK`
 
 ```
-DATA          │  yfinance • pandas • numpy
-STATISTICS    │  scipy.stats • parametric & empirical distributions  
+DATA             │  yfinance • pandas • numpy
+STATISTICS       │  scipy.stats • parametric & empirical distributions
 MACHINE LEARNING │  scikit-learn • RandomForest • GradientBoosting • TimeSeriesSplit
-VISUALISATION │  plotly (interactive) • matplotlib • seaborn
-SIMULATION    │  numpy (Cholesky Monte Carlo)
-NOTEBOOK      │  JupyterLab
+VISUALISATION    │  plotly (interactive) • matplotlib • seaborn
+SIMULATION       │  numpy (Cholesky Monte Carlo)
+ENVIRONMENT      │  JupyterLab
 ```
 
 ---
@@ -170,9 +236,10 @@ NOTEBOOK      │  JupyterLab
 ```
 Finance-Risk-Analytics/
 │
-├── 📓 Finance_Risk_Analytics.ipynb   ← Main notebook (31 cells, 7 sections)
-├── 📋 requirements.txt               ← All dependencies
-└── 📖 README.md                      ← You are here
+├── Finance_Risk_Analytics.ipynb   ← Main notebook (31 cells, 7 sections)
+├── requirements.txt               ← All dependencies
+├── assests           ← 9-panel dashboard screenshot
+└── README.md                      ← You are here
 ```
 
 ---
@@ -181,9 +248,9 @@ Finance-Risk-Analytics/
 
 ```
 NEXT ITERATIONS:
-  [ ] Efficient Frontier — mean-variance optimisation
+  [ ] Efficient Frontier — mean-variance portfolio optimisation
   [ ] Fama-French Factor Model — 3/5-factor decomposition
-  [ ] Black-Scholes Options Pricing — implied vol surface
+  [ ] Black-Scholes Options Pricing — implied volatility surface
   [ ] LSTM Deep Learning — sequence-based prediction
   [ ] Streamlit Deployment — live web dashboard
   [ ] Real-Time Alerts — VaR breach notifications
